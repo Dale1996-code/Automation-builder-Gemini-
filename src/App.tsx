@@ -6,9 +6,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Code2, Loader2, Sparkles } from 'lucide-react';
 import Markdown from 'react-markdown';
-import { createChat } from './lib/gemini';
+import { sendMessageStream, ChatHistoryMessage } from './lib/gemini';
 import { cn } from './lib/utils';
-import { GenerateContentResponse } from '@google/genai';
 
 type Message = {
   id: string;
@@ -27,14 +26,7 @@ export default function App() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const chatRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!chatRef.current) {
-      chatRef.current = createChat();
-    }
-  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,24 +51,36 @@ export default function App() {
     setMessages(prev => [...prev, { id: modelMessageId, role: 'model', text: '', isStreaming: true }]);
 
     try {
-      const responseStream = await chatRef.current.sendMessageStream({ message: userText });
-      
+      const history: ChatHistoryMessage[] = messages
+        .filter(msg => msg.id !== 'welcome')
+        .map(msg => ({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.text }]
+        }));
+
+      const body = await sendMessageStream(userText, history);
+      if (!body) throw new Error('No response body');
+
+      const reader = body.getReader();
+      const decoder = new TextDecoder();
       let fullText = '';
-      for await (const chunk of responseStream) {
-        const c = chunk as GenerateContentResponse;
-        if (c.text) {
-            fullText += c.text;
-            setMessages(prev => 
-            prev.map(msg => 
-                msg.id === modelMessageId 
-                ? { ...msg, text: fullText } 
-                : msg
-            )
-            );
-        }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === modelMessageId
+              ? { ...msg, text: fullText }
+              : msg
+          )
+        );
       }
-      
-      setMessages(prev => 
+
+      setMessages(prev =>
         prev.map(msg => 
           msg.id === modelMessageId 
             ? { ...msg, isStreaming: false } 
