@@ -27,7 +27,7 @@ export default function App() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const chatRef = useRef<any>(null);
+  const chatRef = useRef<ReturnType<typeof createChat> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !chatRef.current) return;
 
     const userText = input.trim();
     setInput('');
