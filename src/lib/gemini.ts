@@ -3,6 +3,8 @@ import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 // Initialize Gemini API
 export const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
+export const GEMINI_MODEL = "gemini-3.1-pro-preview";
+
 const systemInstruction = `You are an expert automation engineer and script writer. Your job is to take high-level goals described in plain English and produce complete, ready-to-run automation scripts that achieve those goals.
 
 ## Your Behavior
@@ -63,7 +65,7 @@ Important Rules
 
 export const createChat = () => {
   return ai.chats.create({
-    model: "gemini-3.1-pro-preview",
+    model: GEMINI_MODEL,
     config: {
       systemInstruction,
       thinkingConfig: { thinkingLevel: ThinkingLevel.HIGH },
