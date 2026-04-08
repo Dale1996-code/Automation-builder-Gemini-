@@ -26,8 +26,10 @@ export default function App() {
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3.1-pro-preview',
-        contents: `You are an expert social media manager. I will give you a topic, and you will return three chaotic, high-energy 10-second video hooks.
-Topic: ${topic.trim()}`,
+        contents: topic.trim(),
+        config: {
+          systemInstruction: "You are an expert social media manager. I will give you a topic, and you will return three chaotic, high-energy 10-second video hooks."
+        }
       });
       
       if (response.text) {
