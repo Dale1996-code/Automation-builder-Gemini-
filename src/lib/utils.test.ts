@@ -22,7 +22,6 @@ test('cn utility function', async (t) => {
   });
 
   await t.test('filters out falsy values', () => {
-    // @ts-ignore - testing runtime behavior with mixed types
     assert.strictEqual(cn('a', null, undefined, '', false, 0), 'a');
   });
 });
