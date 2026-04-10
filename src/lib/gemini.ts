@@ -1,7 +1,11 @@
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 
 // Initialize Gemini API
-export const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+const apiKey = typeof import.meta.env !== 'undefined'
+  ? import.meta.env.VITE_GEMINI_API_KEY
+  : process.env.VITE_GEMINI_API_KEY || 'test-api-key';
+
+export const ai = new GoogleGenAI({ apiKey });
 
 const systemInstruction = `You are an expert automation engineer and script writer. Your job is to take high-level goals described in plain English and produce complete, ready-to-run automation scripts that achieve those goals.
 
